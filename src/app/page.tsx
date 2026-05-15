@@ -1,13 +1,18 @@
 "use client";
 
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const {data: session, status} = useSession();
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [message, setMessage] = useState('');
+  const [bookmarks, setBookmarks] = useState<any[]>([]);
+
+  useEffect(() => {
+    if(session) fetchBookmarks();
+  },[session]);
 
   if(status=="loading") return <p className="flex min-h-screen justify-center items-center">Loading...</p>
 
@@ -36,6 +41,7 @@ export default function Home() {
     });
     if (res.ok) {
       setMessage('Bookmark created!');
+      await fetchBookmarks();
       setTitle('');
       setUrl('');
     } else {
@@ -43,6 +49,14 @@ export default function Home() {
       setMessage(err.error || 'Something went wrong');
     }
   };
+
+  const fetchBookmarks = async () => {
+    const res = await fetch('/api/bookmarks');
+    if(res.ok){
+      const data = await res.json();
+      setBookmarks(data);
+    }
+  }
 
   return(
     <main className="flex min-h-screen flex-col justify-center items-center gap-4">
@@ -75,6 +89,18 @@ export default function Home() {
         </button>
       </form>
       {message && <p className="text-sm text-gray-600">{message}</p>}
+      <div>
+        {bookmarks.length === 0 ? (
+          <p>No bookmarks yet.</p>
+        ) : (
+          bookmarks.map((b) => (
+            <div key={b.id} className="border p-3 rounded mb-2 bg-white shadow-sm">
+              <a href={b.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 hover:underline">{b.title}</a>
+              <p className="text-xs text-gray-400 mt-1">{new Date(b.createdAt).toLocaleString()}</p>
+            </div>
+          ))
+        )}
+      </div>
       <button
         onClick={()=>signOut()}
         className="rounded bg-red-500 px-4 py-2 text-white mt-4"
