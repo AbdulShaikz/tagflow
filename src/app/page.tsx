@@ -7,7 +7,8 @@ export default function Home() {
   const {data: session, status} = useSession();
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
-  const [message, setMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [bookmarks, setBookmarks] = useState<any[]>([]);
 
   useEffect(() => {
@@ -33,20 +34,21 @@ export default function Home() {
 
   const createBookmark = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
+    setSuccessMessage('');
+    setErrorMessage('');
     const res = await fetch('/api/bookmarks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, url }),
     });
     if (res.ok) {
-      setMessage('Bookmark created!');
+      setSuccessMessage('Bookmark created!');
       await fetchBookmarks();
       setTitle('');
       setUrl('');
     } else {
       const err = await res.json();
-      setMessage(err.error || 'Something went wrong');
+      setErrorMessage(err.error || 'Something went wrong');
     }
   };
 
@@ -55,6 +57,18 @@ export default function Home() {
     if(res.ok){
       const data = await res.json();
       setBookmarks(data);
+    }
+  }
+
+  const deleteBookmark = async (id: string) => {
+    setSuccessMessage('');
+    setErrorMessage('');
+    const res = await fetch(`/api/bookmarks?id=${id}`, {method: 'DELETE'});
+    if(res.ok){
+      setSuccessMessage('Bookmark deleted!');
+      fetchBookmarks();
+    } else {
+      setErrorMessage('Failed to delete bookmark. Please try again.');
     }
   }
 
@@ -88,15 +102,24 @@ export default function Home() {
           Save Bookmark
         </button>
       </form>
-      {message && <p className="text-sm text-gray-600">{message}</p>}
-      <div>
+      {errorMessage && <p className="text-sm text-red-600">{errorMessage}</p>}
+      {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
+      <div className="w-full max-w-md mt-4">
         {bookmarks.length === 0 ? (
-          <p>No bookmarks yet.</p>
+          <p className="text-gray-500">No bookmarks yet.</p>
         ) : (
           bookmarks.map((b) => (
-            <div key={b.id} className="border p-3 rounded mb-2 bg-white shadow-sm">
-              <a href={b.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 hover:underline">{b.title}</a>
-              <p className="text-xs text-gray-400 mt-1">{new Date(b.createdAt).toLocaleString()}</p>
+            <div key={b.id} className="border p-3 rounded mb-2 bg-white shadow-sm flex justify-between items-start">
+              <div>
+                <a href={b.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 hover:underline">{b.title}</a>
+                <p className="text-xs text-gray-400 mt-1">{new Date(b.createdAt).toLocaleString()}</p>
+              </div>
+              <button 
+                className="text-red-500 text-sm hover:underline cursor-pointer"
+                onClick={() => deleteBookmark(b.id)}
+              >
+                  Delete
+              </button>
             </div>
           ))
         )}
