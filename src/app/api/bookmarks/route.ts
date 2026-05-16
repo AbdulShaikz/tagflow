@@ -56,6 +56,9 @@ export async function GET(req: NextRequest){
   const bookmarks = await prisma.bookmark.findMany({
     where: { userId: user.id},
     orderBy: { createdAt: 'desc'},
+    include: {
+      tags: true,
+    }
   });
 
   return NextResponse.json(bookmarks);

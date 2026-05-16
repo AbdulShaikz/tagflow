@@ -2,6 +2,7 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
+import BookmarkCard from "./components/BookmarkCard";
 
 export default function Home() {
   const {data: session, status} = useSession();
@@ -109,18 +110,12 @@ export default function Home() {
           <p className="text-gray-500">No bookmarks yet.</p>
         ) : (
           bookmarks.map((b) => (
-            <div key={b.id} className="border p-3 rounded mb-2 bg-white shadow-sm flex justify-between items-start">
-              <div>
-                <a href={b.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 hover:underline">{b.title}</a>
-                <p className="text-xs text-gray-400 mt-1">{new Date(b.createdAt).toLocaleString()}</p>
-              </div>
-              <button 
-                className="text-red-500 text-sm hover:underline cursor-pointer"
-                onClick={() => deleteBookmark(b.id)}
-              >
-                  Delete
-              </button>
-            </div>
+            <BookmarkCard
+              key={b.id}
+              bookmark={b}
+              onDelete={deleteBookmark}
+              onRefresh={fetchBookmarks}
+            />
           ))
         )}
       </div>

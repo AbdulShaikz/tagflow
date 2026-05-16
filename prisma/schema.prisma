@@ -29,7 +29,7 @@ model Bookmark{
 
 model Tag{
   id String @id @default(cuid())
-  name String
+  name String @unique
   bookmarks Bookmark[]
   createdAt DateTime @default(now())
 }
