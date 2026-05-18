@@ -11,6 +11,7 @@ export default function Home() {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [bookmarks, setBookmarks] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if(session) fetchBookmarks();
@@ -72,10 +73,34 @@ export default function Home() {
       setErrorMessage('Failed to delete bookmark. Please try again.');
     }
   }
+  
+  const filteredBookmarks = searchQuery.trim() === ''
+    ? bookmarks
+    : bookmarks.filter(b => {
+        const query = searchQuery.toLowerCase();
+        const matchesTitle = b.title.toLowerCase().includes(query);
+        const matchesTag = b.tags?.some((tag: { name: string }) => tag.name.toLowerCase().includes(query));
+        return matchesTitle || matchesTag;
+      });
 
   return(
     <main className="flex min-h-screen flex-col justify-center items-center gap-4">
       <h1 className="text-4xl font-bold">TagFlow</h1>
+      <div className="w-full max-w-md mb-4">
+        <input 
+          type="text"
+          placeholder="Search bookmarks by title or tag..."
+          value={searchQuery}
+          onChange={(e)=>setSearchQuery(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400" 
+        />
+        <p className="text-xs text-gray-400 mt-2 text-center">
+          {searchQuery
+            ? `Showing ${filteredBookmarks.length} of ${bookmarks.length} bookmarks`
+            : `${bookmarks.length} bookmarks`
+          }
+        </p>
+      </div>
       <div className="flex items-center gap-4">
         {session.user?.image && (
           <img src={session.user.image} alt="avatar" className="w-10 h-10 rounded-full"/>
@@ -106,10 +131,10 @@ export default function Home() {
       {errorMessage && <p className="text-sm text-red-600">{errorMessage}</p>}
       {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
       <div className="w-full max-w-md mt-4">
-        {bookmarks.length === 0 ? (
+        {filteredBookmarks.length === 0 ? (
           <p className="text-gray-500">No bookmarks yet.</p>
         ) : (
-          bookmarks.map((b) => (
+          filteredBookmarks.map((b) => (
             <BookmarkCard
               key={b.id}
               bookmark={b}
