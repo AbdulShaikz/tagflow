@@ -1,7 +1,7 @@
 "use client";
-
+ 
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BookmarkCard from "./components/BookmarkCard";
 
 export default function Home() {
@@ -12,10 +12,34 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState('');
   const [bookmarks, setBookmarks] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTag, setActiveTag] = useState<string | null>(null);
 
   useEffect(() => {
     if(session) fetchBookmarks();
   },[session]);
+
+  const filteredBookmarks = useMemo(() => {
+    let result = bookmarks;
+
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(b => {
+        const matchesTitle = b.title.toLowerCase().includes(query);
+        const matchesTag = b.tags?.some((tag: { name: string }) => 
+          tag.name.toLowerCase().includes(query)
+        );
+        return matchesTitle || matchesTag;
+      });
+    }
+
+    if (activeTag) {
+      result = result.filter(b => 
+        b.tags?.some((tag: { name: string }) => tag.name === activeTag)
+      );
+    }
+
+    return result;
+  }, [bookmarks, searchQuery, activeTag]);
 
   if(status=="loading") return <p className="flex min-h-screen justify-center items-center">Loading...</p>
 
@@ -73,15 +97,6 @@ export default function Home() {
       setErrorMessage('Failed to delete bookmark. Please try again.');
     }
   }
-  
-  const filteredBookmarks = searchQuery.trim() === ''
-    ? bookmarks
-    : bookmarks.filter(b => {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = b.title.toLowerCase().includes(query);
-        const matchesTag = b.tags?.some((tag: { name: string }) => tag.name.toLowerCase().includes(query));
-        return matchesTitle || matchesTag;
-      });
 
   return(
     <main className="flex min-h-screen flex-col justify-center items-center gap-4">
@@ -130,6 +145,21 @@ export default function Home() {
       </form>
       {errorMessage && <p className="text-sm text-red-600">{errorMessage}</p>}
       {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
+      {activeTag && (
+        <div 
+          className="w-full max-w-md flex items-center justify-between bg-blue-50 border border-blue-200 rounded px-3 py-2 mb-3 text-sm"
+        >
+          <span className="text-gray-500">
+            Filtering by tag: <strong className="text-blue-700">{activeTag}</strong>
+          </span>
+          <button 
+            onClick={() => setActiveTag(null)}
+            className="text-blue-600 hover:text-blue-800 font-bold ml-4 cursor-pointer"
+          >
+            ✕ Clear
+          </button>
+        </div>
+      )}
       <div className="w-full max-w-md mt-4">
         {filteredBookmarks.length === 0 ? (
           <p className="text-gray-500">No bookmarks yet.</p>
@@ -140,6 +170,9 @@ export default function Home() {
               bookmark={b}
               onDelete={deleteBookmark}
               onRefresh={fetchBookmarks}
+              onTagClick={(tagName:string) => {
+                setActiveTag(prev => prev === tagName?null : tagName);
+              }}
             />
           ))
         )}

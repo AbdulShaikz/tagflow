@@ -12,10 +12,12 @@ export default function BookmarkCard({
   bookmark,
   onDelete,
   onRefresh,
+  onTagClick,
 }: {
   bookmark: Bookmark;
   onDelete: (id: string) => void;
   onRefresh: () => void;
+  onTagClick:(tagName: string) => void;
 }) {
   const [showAddTag, setShowAddTag] = useState(false);
   const [tagName, setTagName] = useState("");
@@ -107,12 +109,16 @@ export default function BookmarkCard({
       {bookmark.tags?.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-3">
           {bookmark.tags.map((tag) => (
-            <span
+            <button
               key={tag.id}
-              className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs border border-blue-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                onTagClick(tag.name)
+              }}
+              className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs border border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors"
             >
               {tag.name}
-            </span>
+            </button>
           ))}
         </div>
       )}
