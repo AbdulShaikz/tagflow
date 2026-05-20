@@ -1,6 +1,6 @@
 allowBuilds:
   '@prisma/engines': true
-  msw: set this to true or false
+  msw: true
   prisma: true
   sharp: true
   unrs-resolver: true
