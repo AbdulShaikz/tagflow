@@ -92,7 +92,7 @@ export default function BookmarkCard({
   };
 
   return (
-    <Card className="mb-3">
+    <Card className="h-full">
       <CardContent className="pt-4">
         <div className="flex justify-between items-start gap-2">
           <div className="flex-1 min-w-0">
