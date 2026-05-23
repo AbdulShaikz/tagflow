@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TagFlow
 
-## Getting Started
+> Save a link. AI tags it. Find it later.
 
-First, run the development server:
+**[Live Demo](https://tagflow.vercel.app)**
+
+![Landing Page](public/image.png)
+
+![Dashboard](public/image-1.png)
+Browser bookmarks are broken - folders force one category, search barely works.
+TagFlow lets you dump a link and have AI figure out the tags.
+
+## Stack
+`Next.js` · `TypeScript` · `PostgreSQL` · `Supabase` · `Prisma` · `NextAuth` · `Groq` · `shadcn/ui`
+
+## Features
+- GitHub OAuth login
+- AI auto-tagging via Groq on every saved link
+- Manual tag editing
+- Instant client-side search by title or tag
+- Click any tag to filter
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+git clone https://github.com/AbdulShaikz/tagflow
+cd tagflow
+pnpm install
+cp .env.example .env   # fill in DATABASE_URL, GITHUB_*, GROQ_API_KEY, NEXTAUTH_*
+npx prisma db push
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Trade-offs
+- **Groq over OpenAI** - free tier, faster latency, tags are slightly less nuanced
+- **Client-side search** - simple and fast enough at personal scale, would swap to Postgres full-text search for multi-user
+- **`prisma db push` not migrations** - fine for solo dev, migrations needed before 
+  production users

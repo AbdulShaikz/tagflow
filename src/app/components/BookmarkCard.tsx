@@ -143,7 +143,7 @@ export default function BookmarkCard({
           </div>
         )}
 
-        <div className="flex flex-wrap items-start gap-x-3 gap-y-2 mt-2">
+        <div className="flex flex-wrap items-start gap-x-3 gap-y-2 border-t border-border mt-3 pt-3">
           {!showAddTag ? (
             <Button
               variant="link"
