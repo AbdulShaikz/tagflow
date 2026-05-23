@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "./components/AuthProvider";
 import { cn } from "@/lib/utils";
+import { ThemeProvider } from "next-themes";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -29,12 +30,20 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -33,15 +33,16 @@ export default function BookmarkCard({
   const [autoTagging, setAutoTagging] = useState(false);
 
   useEffect(() => {
-    if (!tagError && !autoTagError) return;
+    if (!tagError) return;
+      const timer = setTimeout(() => setTagError(""), 3000);
+      return () => clearTimeout(timer);
+  }, [tagError]);
 
-    const timer = setTimeout(() => {
-      setTagError("");
-      setAutoTagError("");
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [tagError, autoTagError]);
+  useEffect(() => {
+    if (!autoTagError) return;
+      const timer = setTimeout(() => setAutoTagError(""), 3000);
+      return () => clearTimeout(timer);
+  }, [autoTagError]);
 
   const handleAutoTag = async () => {
     if (autoTagging) return;
@@ -100,11 +101,11 @@ export default function BookmarkCard({
               href={bookmark.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-blue-600 hover:underline text-sm wrap-break-word"
+              className="font-semibold text-blue-600 dark:text-blue-400 hover:underline text-sm wrap-break-word"
             >
               {bookmark.title}
             </a>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
               {new Date(bookmark.createdAt).toLocaleString()}
             </p>
           </div>
@@ -113,7 +114,7 @@ export default function BookmarkCard({
             size="icon"
             onClick={() => onDelete(bookmark.id)}
             disabled={isDeleting}
-            className="h-7 w-7 shrink-0 text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-50"
+            className="h-7 w-7 shrink-0 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
             title="Delete bookmark"
           >
             {isDeleting ? (
@@ -130,7 +131,7 @@ export default function BookmarkCard({
               <Badge
                 key={tag.id}
                 variant="secondary"
-                className="cursor-pointer hover:bg-blue-100 transition-colors"
+                className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   onTagClick(tag.name);
@@ -147,7 +148,7 @@ export default function BookmarkCard({
             <Button
               variant="link"
               size="sm"
-              className="text-xs h-auto p-0 text-gray-500 hover:text-blue-600"
+              className="text-xs h-auto p-0 text-gray-500 dark:text-gray-400 hover:text-blue-600"
               onClick={() => setShowAddTag(true)}
             >
               <Plus className="h-3 w-3 mr-1" />
@@ -198,7 +199,7 @@ export default function BookmarkCard({
             <Button
               variant="link"
               size="sm"
-              className="text-xs h-auto p-0 text-purple-600 hover:text-purple-700"
+              className="text-xs h-auto p-0 text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
               onClick={handleAutoTag}
               disabled={autoTagging}
             >

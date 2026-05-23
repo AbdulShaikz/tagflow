@@ -1,7 +1,7 @@
 "use client";
  
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BookmarkCard from "./components/BookmarkCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ThemeToggle } from "./components/ThemeToggleButton";
 
 function BookmarkSkeleton() {
   return (
@@ -43,25 +44,25 @@ function TagList({
   onTagClick: (name: string) => void;
 }) {
   if (allTags.length === 0)
-    return <p className="text-xs text-gray-400">No tags yet.</p>;
+    return <p className="text-xs text-muted-foreground">No tags yet.</p>;
  
   return (
-    <div className="overflow-y-auto max-h-65 flex flex-col gap-0.5 pr-1">
+    <div className="overflow-y-auto max-h-60 flex flex-col gap-0.5 pr-1">
       {allTags.map(([tagName, count]) => (
         <button
           key={tagName}
           onClick={() => onTagClick(tagName)}
           className={`flex items-center justify-between text-sm px-2 py-1.5 rounded-md w-full text-left transition-colors ${
             activeTag === tagName
-              ? "bg-blue-100 text-blue-700 font-medium"
-              : "text-gray-600 hover:bg-gray-100"
+              ? "bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-medium"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
           }`}
         >
           <span className="flex items-center gap-1.5 min-w-0">
             <Tag className="h-3 w-3 shrink-0" />
             <span className="truncate">{tagName}</span>
           </span>
-          <span className="text-xs text-gray-400 ml-2 shrink-0">{count}</span>
+          <span className="text-xs text-muted-foreground ml-2 shrink-0">{count}</span>
         </button>
       ))}
     </div>
@@ -108,7 +109,7 @@ function SidebarContent({
             Add Bookmark
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Save a Bookmark</DialogTitle>
           </DialogHeader>
@@ -146,21 +147,21 @@ function SidebarContent({
       </Dialog>
  
        <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
           Stats
         </p>
-        <p className="text-sm text-gray-600">
-          <span className="font-semibold text-gray-900">{bookmarkCount}</span>{" "}
+        <p className="text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">{bookmarkCount}</span>{" "}
           bookmark{bookmarkCount !== 1 ? "s" : ""}
         </p>
-        <p className="text-sm text-gray-600">
-          <span className="font-semibold text-gray-900">{tagCount}</span>{" "}
+        <p className="text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">{tagCount}</span>{" "}
           tag{tagCount !== 1 ? "s" : ""}
         </p>
       </div>
  
       <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
           Tags
         </p>
         <TagList allTags={allTags} activeTag={activeTag} onTagClick={onTagClick} />
@@ -182,6 +183,7 @@ export default function Home() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
     if(!successMessage) return;
@@ -203,9 +205,17 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if(session) fetchBookmarks(true);
-    else setBookmarksLoading(false);
-  },[session]);
+    if (!session) {
+      setBookmarksLoading(false);
+      return;
+    }
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      fetchBookmarks(true);
+    } else {
+      fetchBookmarks(false);
+    }
+  }, [session, fetchBookmarks]);
 
   const allTags = useMemo<[string, number][]>(() => {
     const map = new Map<string, number>();
@@ -320,12 +330,12 @@ export default function Home() {
 
   if(!session){
     return (
-      <main className="flex flex-col min-h-screen justify-center items-center gap-4 bg-gray-50 px-4">
+      <main className="flex flex-col min-h-screen justify-center items-center gap-4 bg-background px-4">
         <div className="flex items-center gap-2">
           <Bookmark className="h-8 w-8 text-blue-600" />
           <h1 className="text-4xl sm:text-5xl font-bold">TagFlow</h1>
         </div>
-        <p className="text-gray-500 text-center">
+        <p className="text-muted-foreground text-center">
           Your AI-powered bookmark manager
         </p>
         <div className="flex flex-col gap-3 w-full max-w-xs mt-2">
@@ -359,15 +369,15 @@ export default function Home() {
   }
 
   return(
-    <div className="h-screen bg-gray-50 flex flex-col">
-      <header className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+    <div className="h-screen bg-background flex flex-col">
+      <header className="sticky top-0 z-20 bg-background border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden h-8 w-8 text-gray-500"
+                className="md:hidden h-8 w-8 text-muted-foreground"
                 aria-label="Open sidebar"
               >
                 <SlidersHorizontal className="h-4 w-4" />
@@ -396,14 +406,15 @@ export default function Home() {
               className="w-7 h-7 rounded-full"
             />
           )}
-          <span className="text-sm text-gray-500 hidden sm:block truncate max-w-35">
+          <span className="text-sm text-muted-foreground hidden sm:block truncate max-w-35">
             {session.user?.name}
           </span>
+          <ThemeToggle />
           <Button
             variant="ghost"
             size="sm"
             onClick={() => signOut()}
-            className="text-gray-500 hover:text-red-500 hover:bg-red-50 px-2"
+            className="text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 px-2"
           >
             <LogOut className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">Sign out</span>
@@ -412,13 +423,13 @@ export default function Home() {
       </header>
       
       <div className="flex flex-1 overflow-hidden">
-        <aside className="hidden md:flex w-60 shrink-0 bg-white border-r border-gray-200 flex-col gap-6 p-5 overflow-y-auto">
+        <aside className="hidden md:flex w-60 shrink-0 bg-card border-r border-border flex-col gap-6 p-5 overflow-y-auto">
           <SidebarContent {...sidebarProps} />
         </aside>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           <div className="max-w-5xl mx-auto flex flex-col gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search by title or tag..."
@@ -478,19 +489,19 @@ export default function Home() {
             )}
             
             {activeTag && (
-              <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm">
-                <span className="text-gray-500 flex items-center gap-1.5 min-w-0">
-                  <Tag className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+              <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg px-3 py-2 text-sm">
+                <span className="text-muted-foreground flex items-center gap-1.5 min-w-0">
+                  <Tag className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400 shrink-0" />
                   <span className="truncate">
                     Filtering by{" "}
-                    <strong className="text-blue-700">{activeTag}</strong>
+                    <strong className="text-blue-700 dark:text-blue-300">{activeTag}</strong>
                   </span>
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setActiveTag(null)}
-                  className="h-6 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 shrink-0 ml-2"
+                  className="h-6 px-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 shrink-0 ml-2"
                 >
                   <X className="h-3 w-3 mr-1" />
                   Clear
@@ -498,7 +509,7 @@ export default function Home() {
               </div>
             )}
 
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {searchQuery || activeTag
                 ? `Showing ${filteredBookmarks.length} of ${bookmarks.length} bookmarks`
                 : `${bookmarks.length} bookmark${bookmarks.length !== 1 ? "s" : ""}`}
@@ -512,8 +523,8 @@ export default function Home() {
               </div>
             ) : filteredBookmarks.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-24 text-center">
-                <Bookmark className="h-10 w-10 text-gray-200" />
-                <p className="text-gray-400 text-sm">
+                <Bookmark className="h-10 w-10 text-muted" />
+                <p className="text-muted-foreground text-sm">
                   {searchQuery || activeTag
                     ? "No bookmarks match your search."
                     : "No bookmarks yet. Add your first one!"}
