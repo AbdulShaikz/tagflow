@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Trash2, Sparkles, Plus, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState} from "react";
+import { toast } from "sonner";
 
 type Bookmark = {
   id: string;
@@ -28,25 +29,10 @@ export default function BookmarkCard({
 }) {
   const [showAddTag, setShowAddTag] = useState(false);
   const [tagName, setTagName] = useState("");
-  const [tagError, setTagError] = useState("");
-  const [autoTagError, setAutoTagError] = useState("");
   const [autoTagging, setAutoTagging] = useState(false);
-
-  useEffect(() => {
-    if (!tagError) return;
-      const timer = setTimeout(() => setTagError(""), 3000);
-      return () => clearTimeout(timer);
-  }, [tagError]);
-
-  useEffect(() => {
-    if (!autoTagError) return;
-      const timer = setTimeout(() => setAutoTagError(""), 3000);
-      return () => clearTimeout(timer);
-  }, [autoTagError]);
 
   const handleAutoTag = async () => {
     if (autoTagging) return;
-    setAutoTagError("");
     setAutoTagging(true);
     try {
       const res = await fetch(`/api/bookmarks/${bookmark.id}/auto-tag`, {
@@ -54,12 +40,12 @@ export default function BookmarkCard({
       });
       if (!res.ok) {
         const err = await res.json();
-        setAutoTagError(err.error || "Auto-tag failed");
+        toast.error(err.error || "Auto-tag failed");
       } else {
         onRefresh();
       }
     } catch {
-      setAutoTagError("Network error during auto-tag");
+      toast.error("Network error during auto-tag");
     } finally {
       setAutoTagging(false);
     }
@@ -68,7 +54,7 @@ export default function BookmarkCard({
   const addTag = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tagName.trim()) {
-      setTagError("Tag name cannot be empty");
+      toast.error("Tag name cannot be empty");
       return;
     }
     try {
@@ -79,16 +65,15 @@ export default function BookmarkCard({
       });
       if (!res.ok) {
         const err = await res.json();
-        setTagError(err.error || "Failed to add tag");
+        toast.error(err.error || "Failed to add tag");
         return;
       }
 
       setTagName("");
       setShowAddTag(false);
-      setTagError("");
       onRefresh();
     } catch {
-      setTagError("Network error");
+      toast.error("Network error");
     }
   };
 
@@ -114,7 +99,7 @@ export default function BookmarkCard({
             size="icon"
             onClick={() => onDelete(bookmark.id)}
             disabled={isDeleting}
-            className="h-7 w-7 shrink-0 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
+            className="h-7 w-7 shrink-0 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50 cursor-pointer"
             title="Delete bookmark"
           >
             {isDeleting ? (
@@ -148,7 +133,7 @@ export default function BookmarkCard({
             <Button
               variant="link"
               size="sm"
-              className="text-xs h-auto p-0 text-gray-500 dark:text-gray-400 hover:text-blue-600"
+              className="text-xs h-auto p-0 text-gray-500 dark:text-gray-400 hover:text-blue-600 cursor-pointer"
               onClick={() => setShowAddTag(true)}
             >
               <Plus className="h-3 w-3 mr-1" />
@@ -163,7 +148,6 @@ export default function BookmarkCard({
                   value={tagName}
                   onChange={(e) => {
                     setTagName(e.target.value);
-                    if (tagError) setTagError("");
                   }}
                   className="h-7 text-xs flex-1 min-w-0"
                   autoFocus
@@ -171,7 +155,7 @@ export default function BookmarkCard({
                 <Button
                   type="submit"
                   size="sm"
-                  className="h-7 text-xs shrink-0"
+                  className="h-7 text-xs shrink-0 cursor-pointer"
                 >
                   Add
                 </Button>
@@ -181,17 +165,13 @@ export default function BookmarkCard({
                   size="sm"
                   onClick={() => {
                     setShowAddTag(false);
-                    setTagError("");
                     setTagName("");
                   }}
-                  className="h-7 text-xs shrink-0"
+                  className="h-7 text-xs shrink-0 cursor-pointer"
                 >
                   Cancel
                 </Button>
               </form>
-              {tagError && (
-                <p className="text-red-500 text-xs mt-1">{tagError}</p>
-              )}
             </div>
           )}
 
@@ -199,7 +179,7 @@ export default function BookmarkCard({
             <Button
               variant="link"
               size="sm"
-              className="text-xs h-auto p-0 text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
+              className="text-xs h-auto p-0 text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 cursor-pointer"
               onClick={handleAutoTag}
               disabled={autoTagging}
             >
@@ -210,9 +190,6 @@ export default function BookmarkCard({
               )}
               {autoTagging ? "Tagging..." : "Auto-tag"}
             </Button>
-            {autoTagError && (
-              <p className="text-red-500 text-xs mt-0.5">{autoTagError}</p>
-            )}
           </div>
         </div>
       </CardContent>

@@ -4,6 +4,7 @@ import "./globals.css";
 import AuthProvider from "./components/AuthProvider";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -40,6 +41,18 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Toaster 
+            position={"bottom-right"}
+            richColors
+            toastOptions={
+              {
+                duration: 3000,
+                classNames: {
+                  toast: "text-sm",
+                }
+              }
+            }
+          />
           <AuthProvider>
             {children}
           </AuthProvider>
