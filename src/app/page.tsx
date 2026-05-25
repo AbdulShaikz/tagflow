@@ -281,20 +281,56 @@ export default function Home() {
 
   const deleteBookmark = useCallback(
     async (id: string) => {
+      const deletedBookmark = bookmarks.find(b => b.id === id);
+      if (!deletedBookmark) return;
+
+      setBookmarks(prev => prev.filter(b => b.id !== id));
       setDeletingId(id);
-      try{
-        const res = await fetch(`/api/bookmarks?id=${id}`, {method: 'DELETE'});
-        if(res.ok){
-          toast.success('Bookmark deleted!');
-          await fetchBookmarks();
-        } else {
+
+      try {
+        const res = await fetch(`/api/bookmarks?id=${id}`, { method: 'DELETE' });
+        
+        if (!res.ok) {
+          setBookmarks(prev => {
+            const exists = prev.find(b => b.id === id);
+            return exists ? prev : [...prev, deletedBookmark];
+          });
           toast.error('Failed to delete bookmark. Please try again.');
+          return;
         }
+
+        toast.success('Bookmark deleted', {
+          duration: 5000,
+          action: {
+            label: 'Undo',
+            onClick: async () => {
+              try {
+                const res = await fetch('/api/bookmarks', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    title: deletedBookmark.title,
+                    url: deletedBookmark.url,
+                  }),
+                });
+                if (res.ok) {
+                  await fetchBookmarks();
+                  toast.success('Bookmark restored!');
+                } else {
+                  toast.error('Could not restore bookmark.');
+                }
+              } catch {
+                toast.error('Could not restore bookmark.');
+              }
+            },
+          },
+        });
       } finally {
         setDeletingId(null);
       }
-    }, [fetchBookmarks]
-  );
+    },
+    [bookmarks, fetchBookmarks]
+);
   
   const sidebarProps = {
     bookmarkCount: bookmarks.length,
