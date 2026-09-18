@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Trash2, Sparkles, Plus, Loader2 } from "lucide-react";
-import { useState} from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 type Bookmark = {
@@ -30,6 +30,7 @@ export default function BookmarkCard({
   const [showAddTag, setShowAddTag] = useState(false);
   const [tagName, setTagName] = useState("");
   const [autoTagging, setAutoTagging] = useState(false);
+  const [addingTag, setAddingTag] = useState(false);
 
   const handleAutoTag = async () => {
     if (autoTagging) return;
@@ -53,15 +54,19 @@ export default function BookmarkCard({
 
   const addTag = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tagName.trim()) {
+    const trimmedTagName = tagName.trim();
+    if (!trimmedTagName) {
       toast.error("Tag name cannot be empty");
       return;
     }
+    if (addingTag) return;
+
+    setAddingTag(true);
     try {
       const res = await fetch(`/api/bookmarks/${bookmark.id}/tags`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: tagName.trim() }),
+        body: JSON.stringify({ name: trimmedTagName }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -74,11 +79,13 @@ export default function BookmarkCard({
       onRefresh();
     } catch {
       toast.error("Network error");
+    } finally {
+      setAddingTag(false);
     }
   };
 
   return (
-    <Card className="h-full">
+    <Card className="h-full transition-shadow hover:shadow-md">
       <CardContent className="pt-4">
         <div className="flex justify-between items-start gap-2">
           <div className="flex-1 min-w-0">
@@ -86,7 +93,8 @@ export default function BookmarkCard({
               href={bookmark.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-blue-600 dark:text-blue-400 hover:underline text-sm wrap-break-word"
+              className="font-semibold text-blue-600 dark:text-blue-400 hover:underline text-sm wrap-break-word focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+              aria-label={`Open bookmark: ${bookmark.title}`}
             >
               {bookmark.title}
             </a>
@@ -101,6 +109,7 @@ export default function BookmarkCard({
             disabled={isDeleting}
             className="h-7 w-7 shrink-0 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50 cursor-pointer"
             title="Delete bookmark"
+            aria-label="Delete bookmark"
           >
             {isDeleting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -151,13 +160,16 @@ export default function BookmarkCard({
                   }}
                   className="h-7 text-xs flex-1 min-w-0"
                   autoFocus
+                  aria-label="Tag name"
+                  disabled={addingTag}
                 />
                 <Button
                   type="submit"
                   size="sm"
+                  disabled={addingTag}
                   className="h-7 text-xs shrink-0 cursor-pointer"
                 >
-                  Add
+                  {addingTag ? "Adding..." : "Add"}
                 </Button>
                 <Button
                   type="button"
@@ -167,6 +179,7 @@ export default function BookmarkCard({
                     setShowAddTag(false);
                     setTagName("");
                   }}
+                  disabled={addingTag}
                   className="h-7 text-xs shrink-0 cursor-pointer"
                 >
                   Cancel
