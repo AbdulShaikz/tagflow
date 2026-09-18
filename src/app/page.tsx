@@ -15,7 +15,7 @@ import { ThemeToggle } from "./components/ThemeToggleButton";
 
 function BookmarkSkeleton() {
   return (
-    <Card>
+    <Card className="border-border/60 shadow-sm">
       <CardContent className="pt-4 space-y-3">
         <div className="flex justify-between items-start gap-2">
           <div className="flex-1 space-y-2">
@@ -52,6 +52,7 @@ function TagList({
       {allTags.map(([tagName, count]) => (
         <button
           key={tagName}
+          type="button"
           onClick={() => onTagClick(tagName)}
           className={`flex items-center justify-between text-sm px-2 py-1.5 rounded-md w-full cursor-pointer text-left transition-colors ${
             activeTag === tagName
@@ -402,8 +403,8 @@ export default function Home() {
   }
 
   return(
-    <div className="h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-20 bg-background border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+    <div className="h-screen bg-muted/20 flex flex-col">
+      <header className="sticky top-0 z-20 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75 border-b border-border/70 px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
@@ -464,8 +465,8 @@ export default function Home() {
         <aside className="hidden md:flex w-60 shrink-0 bg-card border-r border-border flex-col gap-6 p-5 overflow-y-auto">
           <SidebarContent {...sidebarProps} />
         </aside>
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-          <div className="max-w-5xl mx-auto flex flex-col gap-4">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6" aria-label="Bookmarks">
+          <div className="max-w-5xl mx-auto flex flex-col gap-5">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -473,8 +474,21 @@ export default function Home() {
                 placeholder="Search by title or tag..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                aria-label="Search bookmarks by title or tag"
+                className="pl-9 pr-9 bg-background shadow-sm"
               />
+              {searchQuery && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              )}
             </div>
 
             <div className="md:hidden">
@@ -538,7 +552,7 @@ export default function Home() {
               </div>
             )}
 
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground" aria-live="polite">
               {searchQuery || activeTag
                 ? `Showing ${filteredBookmarks.length} of ${bookmarks.length} bookmarks`
                 : `${bookmarks.length} bookmark${bookmarks.length !== 1 ? "s" : ""}`}
@@ -551,8 +565,10 @@ export default function Home() {
                 <BookmarkSkeleton />
               </div>
             ) : filteredBookmarks.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 py-24 text-center">
-                <Bookmark className="h-10 w-10 text-muted" />
+              <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-background/60 py-20 text-center">
+                <div className="rounded-full bg-muted p-3">
+                  <Bookmark className="h-7 w-7 text-muted-foreground" />
+                </div>
                 <p className="text-muted-foreground text-sm">
                   {searchQuery || activeTag
                     ? "No bookmarks match your search."
