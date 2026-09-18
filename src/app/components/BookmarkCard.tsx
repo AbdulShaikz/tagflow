@@ -40,8 +40,11 @@ export default function BookmarkCard({
         method: "POST",
       });
       if (!res.ok) {
-        const err = await res.json();
-        toast.error(err.error || "Auto-tag failed");
+        const contentType = res.headers.get("content-type") ?? "";
+        const error = contentType.includes("application/json")
+          ? ((await res.json()) as { error?: string }).error
+          : await res.text();
+        toast.error(error || `Auto-tag failed (${res.status})`);
       } else {
         onRefresh();
       }
