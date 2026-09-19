@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{id: str
 
     try {
         const {object} = await generateObject({
-            model: groq('meta-llama/llama-4-scout-17b-16e-instruct'),
+            model: groq('openai/gpt-oss-120b'),
             schema: z.object({
                 tags: z.array(z.string().max(20)).max(5).describe('Relevant lowercase tags for the bookmark'),
             }),
